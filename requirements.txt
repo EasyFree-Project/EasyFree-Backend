@@ -1,0 +1,5 @@
+scrapy
+numpy
+pandas
+torch
+torchvision
