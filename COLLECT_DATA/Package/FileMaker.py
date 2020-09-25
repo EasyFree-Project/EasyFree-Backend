@@ -45,7 +45,7 @@ class JsonMaker():
             self.file.write(json.dumps(data))
 
         self.count += 1
-        if self.count==10000:
+        if self.count==self.data_count:
             self.close_file()
             self.count = 0
             self.fn += 1
