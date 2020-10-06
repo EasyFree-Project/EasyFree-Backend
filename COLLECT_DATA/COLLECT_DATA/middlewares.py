@@ -120,7 +120,8 @@ class IgnoringRetryMiddleware(RetryMiddleware):
         if request.meta.get('dont_retry', False):
             return response
 
-        elif response.status == 429:
+        # Status Code 수정
+        elif response.status == 401:
             self.crawler.engine.pause()
             time.sleep(IgnoringRetryMiddleware.HOLD_TIME) # If the rate limit is renewed in a minute, put 60 seconds, and so on.
             self.crawler.engine.unpause()
