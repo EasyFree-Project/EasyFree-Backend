@@ -10,17 +10,18 @@ class Python2DB():
                                 db='EasyFree',
                                 charset='utf8')
 
-        self.cursor = self.EF_DB.cursor()
+        # self.cursor = self.EF_DB.cursor()
 
     def select(self, table, column):
+        self.cursor = self.EF_DB.cursor()
         sql_qr = """
             SELECT {0} FROM {1}
         """.format(column, table)
         self.cursor.execute(sql_qr)
-        re = self.cursor.fetchall()
-        print(re)
+        return self.cursor.fetchall()
 
     def insert(self, table, columns, values):
+        self.cursor = self.EF_DB.cursor()
         sql_qr2 = """
             INSERT INTO {0}({1})
             VALUES ({2})
@@ -29,6 +30,7 @@ class Python2DB():
         self.EF_DB.commit()
 
     def update(self, table, set_content, where_content):
+        self.cursor = self.EF_DB.cursor()
         sql_qr3 = """
             UPDATE {0}
             SET {1}
@@ -38,6 +40,7 @@ class Python2DB():
         self.EF_DB.commit()
 
     def delete(self, table, where_content):
+        self.cursor = self.EF_DB.cursor()
         sql_qr4 = """
             DELETE FROM {0} WHERE {1}
         """.format(table, where_content)
