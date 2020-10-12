@@ -1,6 +1,7 @@
 import json
 import os
-
+from . import FileSearch
+import re
 class JsonMaker():
 
     # Large Folder Index
@@ -25,7 +26,20 @@ class JsonMaker():
         if Folder_Name != '':
             fol_dir = self.file_path + Folder_Name
         else:
-            fol_dir = self.file_path + chr(self.f_li) + chr(self.f_si)
+            temp = False
+            for large_folder in range(65,91):
+                for small_folder in range(65,91):
+                    fol_dir = self.file_path + chr(large_folder) + chr(small_folder)
+                    fl = FileSearch.search(fol_dir)
+                    if len(fl) != 100:
+                        self.fn = len(fl)+1
+                        temp = True
+                    if temp:
+                        break
+                if temp:
+                    break
+
+            # fol_dir = self.file_path + chr(self.f_li) + chr(self.f_si)
         try:
             if not os.path.exists(fol_dir):
                 os.makedirs(fol_dir)

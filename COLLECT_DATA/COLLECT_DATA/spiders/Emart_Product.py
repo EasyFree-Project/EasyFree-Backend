@@ -12,12 +12,9 @@ import io
 from bs4 import BeautifulSoup
 import re
 
-import re
- 
 def cleanText(readData):
     #텍스트에 포함되어 있는 특수 문자 제거
-    text = re.sub('[-=+,#/\?:^$@*\"※~&%_ㆍ!』\\‘|\(\)\<\>`\'…》]', ' ', readData)
-    return text
+    return re.sub('[-=+,#/\?:^$@*\"※~&%_ㆍ!』\\‘|\(\)\<\>`\'…》]', ' ', readData)
 
 # Target User Cralwer
 class EmartSpider(scrapy.Spider):
@@ -39,21 +36,24 @@ class EmartSpider(scrapy.Spider):
     EasyFree_DB = Python2DB
 
 
-    # CATEGORY_LIST = 파일 read
-    CATEGORY_FILE = pd.read_csv('./emart_category.csv', index_col=0)
-    CATEGORY_FILE = pd.DataFrame(EasyFree_DB.select('Category', '*'))
+    # 파일 read 카테고리 리스트
+    # CATEGORY_FILE = pd.read_csv('./emart_category.csv', index_col=0)
     # category_number = list(map(lambda i : str(i).zfill(10), CATEGORY_FILE['category_number']))
-    # CATEGORY_LIST = [6000095799]
+
+    # DB에서 카테고리 리스트 읽기
+    CATEGORY_FILE = pd.DataFrame(EasyFree_DB.select('Category', '*'))
     CATEGORY_LIST = CATEGORY_FILE[0]
-    # CATEGORY_NAME = ['사과']
     CATEGORY_NAME = CATEGORY_FILE[1]
     category_idx = 0
+    
+    # index 맨 마지막 파일에서 받는 코드 필요
+    category_idx = list(CATEGORY_LIST).index('0006510321') + 1
     
     page_number = 1
 
     def __init__(self, TARGET_ID=''):
         self.TARGET_ID = TARGET_ID
-        
+
     def start_requests(self):
         EmartSpider.DF.create_folder()
         EmartSpider.DF.write_file()
@@ -116,7 +116,6 @@ class EmartSpider(scrapy.Spider):
             image = Image.open(io.BytesIO(image_data))
             image = image.convert('RGB')
             # image = image.resize((image_w, image_h))
-            
             # numpy 배열 -> list로 변환, 이후 np.asarray().reshape(image_size,image_size,3)로 다시 형변환
             data = np.asarray(image).flatten().tolist()
             yield EmartSpider.MF.add_data({
@@ -126,16 +125,16 @@ class EmartSpider(scrapy.Spider):
             })
         
 
-        # 제품 데이터 크롤링 (텍스트)
+        # 제품 평점
         grades = response.css('span.cdtl_grade_num')
 
-        # 제품상세정보 나눠짐, 확인 필요
+        # 제품상세정보 테이블
         th = response.css('div.ty2 th div.in::text').getall()
         td = response.css('div.ty2 td div.in::text').getall()
+
         product_location = []
         capacity_size = []
         nutrient = []
-
         for i, t in enumerate(th):
             if t == '원산지' or t == '생산자 및 소재지' or t == '생산자' or t == '제조국':
                 product_location.append(cleanText(td[i]))
@@ -145,17 +144,13 @@ class EmartSpider(scrapy.Spider):
                 continue
             if t == '주원료/함량(원료 원산지)' or t == '전성분':
                 nutrient.append(cleanText(td[i]))
-
-        # iframe
-        iframe = response.css('iframe::attr(src)').getall()[1]
-        # 따로 추가할 것인지
-        yield scrapy.Request(url='http://emart.ssg.com%s'%iframe, callback=self.content_crawl, cb_kwargs=dict(product_number=product_number))
-
+        
+        # 제품 정보 DB 저장, 파일 저장
         yield EmartSpider.EasyFree_DB.insert('Product','product_number, product_name, product_content, producer_location, capacity_size, nutrient, product_price, avg_review, review_count, category_number',
                                     # "'%s', '%s', '%s', '%s', '%s', %s, %s, %s, %s, '%s'"%(
-                                    "'{}', '{}', '{}', '{}', '{}', '{}', {}, {}, {}, '{}'".format(
+                                    '"{}", "{}", "{}", "{}", "{}", "{}", {}, {}, {}, "{}"'.format(
                                     str(product_number), 
-                                    cleanText(str(response.css('h2.cdtl_info_tit::text').get())),
+                                    cleanText(str(response.css('h2.cdtl_info_tit::text').get()))[:45],
                                     'temp',
                                     '. '.join(product_location)[:45],
                                     '. '.join(capacity_size)[:45],
@@ -178,6 +173,11 @@ class EmartSpider(scrapy.Spider):
                                 'review_count' : grades.css('span.num::text').get(), # 리뷰 수
                                 })
 
+        # 제품 상세 설명 iframe
+        iframe = response.css('iframe::attr(src)').getall()[1]
+        yield scrapy.Request(url='http://emart.ssg.com%s'%iframe, callback=self.content_crawl, cb_kwargs=dict(product_number=product_number))
+
+
     def close(self, reason):
         EmartSpider.DF.close_file()
         EmartSpider.CF.close_file()
@@ -185,7 +185,6 @@ class EmartSpider(scrapy.Spider):
         EmartSpider.EF.close_file()
         print('크롤링 완료')
 
-    # cb_kwargs=dict(product_number=product_number)
     def content_crawl(self, response, product_number):
         try:
             soup = BeautifulSoup(response.css('div.cdtl_tmpl_cont').get(), 'html.parser')
@@ -193,7 +192,8 @@ class EmartSpider(scrapy.Spider):
         except:
             content = ' '
 
-        yield EmartSpider.EasyFree_DB.update('Product', "product_content = '{}'".format(' '.join(content.split())), "product_number = {}".format(str(product_number)))
+        # 제품 상세 정보 DB 저장, 파일 저장
+        yield EmartSpider.EasyFree_DB.update('Product', 'product_content = "{}"'.format(' '.join(content.split())[:1000]), "product_number = {}".format(str(product_number)))
 
         yield EmartSpider.CF.add_data({
             'product_number' : str(product_number),
