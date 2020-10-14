@@ -35,19 +35,19 @@ class EmartSpider(scrapy.Spider):
 
     EasyFree_DB = Python2DB
 
-
     # 파일 read 카테고리 리스트
-    # CATEGORY_FILE = pd.read_csv('./emart_category.csv', index_col=0)
-    # category_number = list(map(lambda i : str(i).zfill(10), CATEGORY_FILE['category_number']))
+    CATEGORY_FILE = pd.read_csv('./emart_category.csv', index_col=0)
+    CATEGORY_LIST = list(map(lambda i : str(i).zfill(10), CATEGORY_FILE['category_number']))
+    CATEGORY_NAME = CATEGORY_FILE['category_name']
 
     # DB에서 카테고리 리스트 읽기
-    CATEGORY_FILE = pd.DataFrame(EasyFree_DB.select('Category', '*'))
-    CATEGORY_LIST = CATEGORY_FILE[0]
-    CATEGORY_NAME = CATEGORY_FILE[1]
+    # CATEGORY_FILE = pd.DataFrame(EasyFree_DB.select('Category', '*'))
+    # CATEGORY_LIST = CATEGORY_FILE[0]
+    # CATEGORY_NAME = CATEGORY_FILE[1]
     category_idx = 0
     
     # index 맨 마지막 파일에서 받는 코드 필요
-    category_idx = list(CATEGORY_LIST).index('0006510321') + 1
+    # category_idx = list(CATEGORY_LIST).index('0006510321') + 1
     
     page_number = 1
 

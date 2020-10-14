@@ -9,26 +9,31 @@ import json
 def check_img(FILE_PATH = '', save_pos = 0, cutoff = 240):
     for next_img in pd.read_json(FILE_PATH)[save_pos:].iloc:
         img_data = np.asarray(next_img[2]).reshape(224,224,3)
-        newData, label_map = image_trans(img_data, cutoff)
-        test_label = np.asarray(label_map).reshape(224,224,-1)
-        # 라벨 박스
-        box_label_image = change_boundary(test_label, find_boundary(test_label))
-        img_show(img_data, box_label_image)
-
-        print('검은색이 상품을 잘 표현한다면 1, 제대로 표현하지 못한다면 0을 입력하세요 : ')
-        s = input()
-        if s == '1':
-            save_img(newData, 'abc')
-            # save_coco()
-        else:
-            break
-        
-        clear_output() # wait=True
         print('이번 카테고리 :', str(next_img[0]).zfill(10))
-        save_pos += 1
         print('Save Point :', save_pos)
-        if save_pos == 269:
+        png_data, label_map = image_trans(img_data, cutoff)
+        label_img = np.asarray(label_map).reshape(224,224,-1)
+        # 라벨 박스
+        box_label_image = change_boundary(label_img, find_boundary(label_img))
+
+        if len(FILE_PATH.split('/')) > 1:
+            img_name = FILE_PATH.split('\\')[-2:]
+        if len(FILE_PATH.split('\\')) > 1:
+            img_name = FILE_PATH.split('\\')[-2:]
+        img_name[1] = img_name[1].split('.')[0]
+        img_name = '_'.join(img_name)+'_%s'%save_pos
+
+        print('빨간색 박스가 상품을 잘 표현한다면 1, 제대로 표현하지 못한다면 0을 입력하세요(종료는 2) : ')
+        img_show(img_data, box_label_image)
+        s = input()
+        clear_output()
+        if s == '1':
+            save_img(png_data, './Trans_Image/%s'%img_name)
+            save_coco('./coco_file.csv', '%s'%img_name, next_img[0], next_img[1], find_boundary(label_img))
+        elif s == '2':
+            print('마지막 Save Point %s'%save_pos)
             break
+        save_pos += 1
 
 # 이미지 투명화
 def image_trans(img_data, cutoff):
@@ -90,14 +95,16 @@ def save_coco(coco_file, file_name, category_number, product_number, boundary):
     data = {
             'image_name' : file_name, # Image 파일 이름
             'category' : category_number, # Target
-            'product' : product_number, # 제품 번호
+            'product' : str(product_number).zfill(13), # 제품 번호
             'x' : center_x,
             'y' : center_y,
             'w' : width,
             'h' : height
             }
+    
+    insert_data = '\n'
+    for i in data:
+        insert_data += '%s,'%data[i]
 
-    with open(coco_file, 'w', encoding='utf-8') as f:
-        f.write(json.dumps(data))
-
-    return
+    with open(coco_file, 'a', encoding='utf-8') as f:
+        f.write(insert_data[:-1])
