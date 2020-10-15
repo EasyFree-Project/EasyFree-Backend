@@ -1,6 +1,6 @@
 import json
 import os
-from . import FileSearch
+import FileSearch
 import re
 class JsonMaker():
 
@@ -30,9 +30,13 @@ class JsonMaker():
             for large_folder in range(65,91):
                 for small_folder in range(65,91):
                     fol_dir = self.file_path + chr(large_folder) + chr(small_folder)
-                    fl = FileSearch.search(fol_dir)
-                    if len(fl) != 100:
-                        self.fn = len(fl)+1
+                    try:
+                        fl = FileSearch.search(fol_dir)
+                        if len(fl) != 100:
+                            self.fn = len(fl)+1
+                            temp = True
+                    except:
+                        self.fn = 1
                         temp = True
                     if temp:
                         break

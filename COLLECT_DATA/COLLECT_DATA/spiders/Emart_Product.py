@@ -1,6 +1,8 @@
 import scrapy
-from Package import FileMaker
-from Package import Python2DB
+import os, sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(os.path.abspath(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))))))
+from PACK import FileMaker
+from PACK import Python2DB
 
 import pandas as pd
 
@@ -47,7 +49,7 @@ class EmartSpider(scrapy.Spider):
     category_idx = 0
     
     # index 맨 마지막 파일에서 받는 코드 필요
-    # category_idx = list(CATEGORY_LIST).index('0006510321') + 1
+    category_idx = list(CATEGORY_LIST).index('6000096294') + 1
     
     page_number = 1
 

@@ -1,10 +1,12 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import copy
 from PIL import Image
 from IPython.display import clear_output
 import json
+import os, sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from PACK import FileSearch
 
 def check_img(FILE_PATH = '', save_pos = 0, cutoff = 240):
     for next_img in pd.read_json(FILE_PATH)[save_pos:].iloc:
@@ -81,6 +83,11 @@ def xywh(boundary):
     x_min, x_max, y_min, y_max = boundary
     return (x_max+x_min)//2, (y_max+y_min)//2, x_max-x_min, y_max-y_min
 
+# coco 파일에 x, y 가 이미지상 x, y좌표와 다름
+def reverse_xywh(boundary):
+    center_x, center_y, width, height = boundary
+    return center_x - width//2, center_x + width//2, center_y - height//2, center_y + height//2
+
 # 이미지 저장
 def save_img(images, file_name):
     # 대체를 위한 투명 이미지
@@ -108,3 +115,53 @@ def save_coco(coco_file, file_name, category_number, product_number, boundary):
 
     with open(coco_file, 'a', encoding='utf-8') as f:
         f.write(insert_data[:-1])
+
+# 학습 이미지 생성
+def mk_TrainData(FILE_PATH, FILE_NAME='et_a', FILE_COUNT=100):
+    coco = pd.read_csv(FILE_PATH)
+    item_list = list(coco['image_name'])
+    bg_fl = FileSearch.search('./Emart_Image', '.jpg')
+    item_fl = list(map(lambda i : './Trans_Image/{}.png'.format(i), item_list))
+    # 이미지가 최소 한번씩은 활용되게?
+    img_count = 0
+    MAX_IMG = 0
+    file_counter = 0
+    while True:
+        this_item = np.random.randint(len(item_fl))
+    # for i in range(len(item_fl)):
+        if img_count == MAX_IMG:
+            try: bg.save("./Train_Image/%s_%s.jpg"%(FILE_NAME, file_counter))
+            except: pass
+            this_bg = np.random.randint(len(bg_fl))
+            # bg_name = bg_fl[this_bg].split('\\')[1].split('.jpg')[0]
+            bg = Image.open(bg_fl[this_bg])
+            
+            bg_w, bg_h = bg.size
+            img_count = 0
+            MAX_IMG = bg_w * bg_h // 40000
+            file_counter += 1
+            if file_counter == FILE_COUNT+1:
+                break
+
+        img_count += 1
+        category = coco.iloc[this_item]['category']
+
+        item = Image.open(item_fl[this_item])
+        item = item.resize((112,112))
+        min_x, max_x, min_y, max_y = reverse_xywh(coco.iloc[this_item][['x','y','w','h']])
+        min_x //= 2 
+        max_x //= 2 
+        min_y //= 2 
+        max_y //= 2 
+        w, h = coco.iloc[this_item][['w','h']]
+        w //= 2 
+        h //= 2
+
+        in_x, in_y = np.random.randint(-min_y, bg_w - max_y), np.random.randint(-min_x, bg_h - max_x)
+        bg.paste(item, (in_x, in_y), item)
+        
+        # coco file 작성 (이미지 좌측 위를 0,0 이라 했을 때, x - 가로, y - 세로 좌표)
+        coco_data = '\n%s,%s,%s,%s,%s,%s'%('%s_%s'%(FILE_NAME, file_counter), category, in_x + h // 2, in_y + w // 2, h, w)
+        with open('./coco_train.csv', 'a', encoding='utf-8') as f:
+            f.write(coco_data)
+        
