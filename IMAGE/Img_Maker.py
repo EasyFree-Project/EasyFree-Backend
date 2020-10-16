@@ -19,7 +19,7 @@ def check_img(FILE_PATH = '', save_pos = 0, cutoff = 240):
         box_label_image = change_boundary(label_img, find_boundary(label_img))
 
         if len(FILE_PATH.split('/')) > 1:
-            img_name = FILE_PATH.split('\\')[-2:]
+            img_name = FILE_PATH.split('/')[-2:]
         if len(FILE_PATH.split('\\')) > 1:
             img_name = FILE_PATH.split('\\')[-2:]
         img_name[1] = img_name[1].split('.')[0]
