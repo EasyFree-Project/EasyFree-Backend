@@ -1,6 +1,6 @@
 import json
 import os
-import FileSearch
+from . import FileSearch
 import re
 class JsonMaker():
 

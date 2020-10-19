@@ -135,11 +135,12 @@ def mk_TrainData(FILE_PATH, FILE_NAME='et_a', FILE_COUNT=100):
             this_bg = np.random.randint(len(bg_fl))
             # bg_name = bg_fl[this_bg].split('\\')[1].split('.jpg')[0]
             bg = Image.open(bg_fl[this_bg])
-            
-            bg_w, bg_h = bg.size
+            bg = bg.resize((1024,1024))
+            bg_w, bg_h = 1024, 1024
             img_count = 0
             MAX_IMG = bg_w * bg_h // 40000
             file_counter += 1
+            source = ['emart_1','emart_2','emart_3','emart_4','emart_5','emart_6'][np.random.randint(0,6)]
             if file_counter == FILE_COUNT+1:
                 break
 
@@ -159,9 +160,9 @@ def mk_TrainData(FILE_PATH, FILE_NAME='et_a', FILE_COUNT=100):
 
         in_x, in_y = np.random.randint(-min_y, bg_w - max_y), np.random.randint(-min_x, bg_h - max_x)
         bg.paste(item, (in_x, in_y), item)
-        
+
         # coco file 작성 (이미지 좌측 위를 0,0 이라 했을 때, x - 가로, y - 세로 좌표)
-        coco_data = '\n%s,%s,%s,%s,%s,%s'%('%s_%s'%(FILE_NAME, file_counter), category, in_x + h // 2, in_y + w // 2, h, w)
+        coco_data = '\n%s,%s,%s,%s,%s,%s,%s'%('%s_%s'%(FILE_NAME, file_counter), category, in_x + min_y, in_y + min_x, h, w,source) # + h // 2 + w // 2
         with open('./coco_train.csv', 'a', encoding='utf-8') as f:
             f.write(coco_data)
         
