@@ -120,7 +120,7 @@ def save_coco(coco_file, file_name, category_number, product_number, boundary):
 def mk_TrainData(FILE_PATH, FILE_NAME='et_a', FILE_COUNT=100):
     coco = pd.read_csv(FILE_PATH)
     item_list = list(coco['image_name'])
-    bg_fl = FileSearch.search('./Emart_Image', '.jpg')
+    bg_fl = FileSearch.search('./BG_Image', '.jpg')
     item_fl = list(map(lambda i : './Trans_Image/{}.png'.format(i), item_list))
     # 이미지가 최소 한번씩은 활용되게?
     img_count = 0
@@ -138,11 +138,15 @@ def mk_TrainData(FILE_PATH, FILE_NAME='et_a', FILE_COUNT=100):
             bg = bg.resize((1024,1024))
             bg_w, bg_h = 1024, 1024
             img_count = 0
-            MAX_IMG = bg_w * bg_h // 40000
+            
+            MAX_IMG = np.random.randint(0,15)
             file_counter += 1
             source = ['emart_1','emart_2','emart_3','emart_4','emart_5','emart_6'][np.random.randint(0,6)]
             if file_counter == FILE_COUNT+1:
                 break
+
+        if img_count == MAX_IMG:
+            continue
 
         img_count += 1
         category = coco.iloc[this_item]['category']
