@@ -1,0 +1,23 @@
+{
+  "name": "easyfree",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "express-mysql-session": "^2.1.4",
+    "express-session": "^1.17.1",
+    "mysql": "^2.18.1",
+    "node-mysql": "^0.4.2",
+    "passport": "^0.4.1",
+    "passport-facebook": "^3.0.0",
+    "passport-local": "^1.0.0",
+    "pbkdf2-password": "^1.2.1"
+  }
+}
