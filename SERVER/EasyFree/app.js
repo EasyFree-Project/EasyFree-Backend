@@ -33,6 +33,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(bodyParser.json());
 
+app.get('/', function(err, res){
+    res.send('Welcome EasyFree Server!');
+});
+
 app.get('/auth/logout', function(req, res){
     req.logout();
     req.session.save(function() {
