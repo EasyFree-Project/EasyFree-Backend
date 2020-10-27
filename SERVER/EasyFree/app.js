@@ -1,11 +1,11 @@
 var express = require('express');
 var session = require('express-session');
+var http = require('http');
 var bodyParser = require('body-parser');
 var MySQLStore = require('express-mysql-session')(session);
 var bkfd2Password = require("pbkdf2-password");
 var passport = require('passport')
 var LocalStrategy = require('passport-local').Strategy;
-var FacebookStrategy = require('passport-facebook').Strategy;
 var hasher = bkfd2Password();
 var mysql = require('mysql');
 var conn = mysql.createConnection({
@@ -31,6 +31,7 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(bodyParser.json());
 
 app.get('/auth/logout', function(req, res){
     req.logout();
@@ -93,59 +94,11 @@ passport.use(new LocalStrategy(  // passport를 사용함에 있어서 로컬 �
         });
     }
 ));
-passport.use(new FacebookStrategy({
-        clientID: '362980878279437',
-        clientSecret: '---',
-        callbackURL: "/auth/facebook/callback",
-        profileFields:['id', 'email', 'gender', 'link', 'locale',
-            'name', 'timezone', 'updated_time', 'verified', 'displayName']
-    },
-    function(accessToken, refreshToken, profile, done) {
-        console.log(profile);
-        var authId = 'facebook:'+profile.id;
-        var sql = 'SELECT * FROM Member WHERE authId=?';
-        conn.query(sql, [authId], function(err, results){
-            if(results.length>0){
-                done(null, results[0]);
-            } else {
-                var newuser = {
-                    'authId':authId,
-                    'displayName':profile.displayName,
-                    'email':profile.emails[0].value
-                };
-                var sql = 'INSERT INTO Member SET ?';
-                conn.query(sql, newuser, function(err, results){
-                    if(err){
-                        console.log(err);
-                        done('Error');
-                    } else {
-                        done(null, newuser);
-                    }
-                })
-            }
-        });
-    }
-));
 
 app.post('/auth/login', passport.authenticate('local',
     { //successRedirect: '/welcome',
         failureRedirect: '/auth/login', failureFlash: false
     }),
-    function(req, res){
-        req.session.save(function(){
-            res.redirect('/welcome')
-        })
-    }
-);
-app.get('/auth/facebook',
-    passport.authenticate('facebook',
-        {scope:'email'}));
-app.get('/auth/facebook/callback',
-    passport.authenticate(
-        'facebook',
-        {//successRedirect: '/welcome',
-            failureRedirect: '/auth/login'
-        }),
     function(req, res){
         req.session.save(function(){
             res.redirect('/welcome')
@@ -167,7 +120,6 @@ app.get('/auth/login', function(req, res){
             <input type="submit">
         </p>
     </form>
-    <a href="/auth/facebook">facebook</a>
     `;
     res.send(output);
 });
