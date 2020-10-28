@@ -102,7 +102,7 @@ app.post('/auth/register', function(req, res){
     });
 });
 
-app.port('/request_test', function(req, res){
+app.post('/request_test', function(req, res){
     res.send(req.body);
 });
 
