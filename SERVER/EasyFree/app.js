@@ -156,7 +156,14 @@ app.post('/model', function(req, res){
     PythonShell.run('EasyFree_modeltest.py', options, function (err, results) {
         if (err) throw err;
         console.log('results: %j', results);
-        res.send(results[0]);
+        var success = {
+            "statusCode": 200,
+            "message": "모델 실행 성공",
+            "data": {
+                "result": results[0]
+            }
+        };
+        res.status(200).send(success);
     });
 });
 
