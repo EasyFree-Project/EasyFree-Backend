@@ -33,6 +33,10 @@ app.get('/', function(err, res){
     res.send('Welcome EasyFree Server!');
 });
 
+app.post('/request_test', function(req, res){
+    res.send(req.body);
+});
+
 app.post('/auth/login', function(req, res){
     console.log(req.body);
     var uname = req.body.username;
@@ -47,7 +51,7 @@ app.post('/auth/login', function(req, res){
         if(!user){
             var fail = {
                 "statusCode": 407,
-                "message": "유저정보가 존재하지 않습니다."
+                "message": "존재하지 않는 유저입니다."
             };
             return res.status(407).send(fail);
         }
@@ -111,8 +115,31 @@ app.post('/auth/register', function(req, res){
     });
 });
 
-app.post('/request_test', function(req, res){
-    res.send(req.body);
+app.get('/product/:category_number', function(req, res) {
+    console.log(req.params.category_number);
+    var category_number = req.params.category_number;
+    var sql = 'SELECT * FROM Product WHERE category_number=?';
+    conn.query(sql, [category_number], function (err, results) {
+        if (err) {
+            console.log(err);
+            res.status(500).send('Internal Server Error');
+        }
+        if (!results[0]) {
+            var fail = {
+                "statusCode": 407,
+                "message": "존재하지 않는 카테고리입니다."
+            };
+            return res.status(407).send(fail);
+        }
+        var success = {
+            "statusCode": 200,
+            "message": "카테고리 검색 성공",
+            "data": {
+                "item": results
+            }
+        };
+        res.status(200).send(success);
+    });
 });
 
 
