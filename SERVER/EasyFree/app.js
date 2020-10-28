@@ -4,8 +4,6 @@ var http = require('http');
 var bodyParser = require('body-parser');
 var MySQLStore = require('express-mysql-session')(session);
 var bkfd2Password = require("pbkdf2-password");
-var passport = require('passport')
-var LocalStrategy = require('passport-local').Strategy;
 var hasher = bkfd2Password();
 var mysql = require('mysql');
 var conn = mysql.createConnection({
@@ -17,6 +15,7 @@ var conn = mysql.createConnection({
 conn.connect();
 var app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(session({
     secret: 'happy',
     resave: false,
@@ -29,81 +28,53 @@ app.use(session({
         database: 'EasyFree'
     })
 }));
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(bodyParser.json());
 
 app.get('/', function(err, res){
     res.send('Welcome EasyFree Server!');
 });
 
-// 세션 관련, 로그인에 성공했을 경우 done의 실행으로 user데이터가 넘어오고 실행됨.
-passport.serializeUser(function(user, done) {
-    console.log('serializeUser', user);
-    done(null, user.authId);
-});
-
-// 세션에 로그인 정보가 저장되었을 경우 실행됨
-passport.deserializeUser(function(id, done) {
-    console.log('deserializeUser', id);
+app.post('/auth/login', function(req, res){
+    console.log(req.body);
+    var uname = req.body.username;
+    var pwd = req.body.password;
     var sql = 'SELECT * FROM Member WHERE authId=?';
-    conn.query(sql, [id], function(err, results){
+    conn.query(sql, ['local:'+uname],function(err, results){
         if(err){
             console.log(err);
-            done('There is no user.');
-        } else {
-            done(null,results[0]);
+            res.status(500).send('Internal Server Error');
         }
+        var user = results[0];
+        if(!user){
+            var fail = {
+                "statusCode": 407,
+                "message": "유저정보가 존재하지 않습니다."
+            };
+            return res.status(407).send(fail);
+        }
+        return hasher({password: pwd, salt: user.salt}, function (err, pass, salt, hash) {
+            if (hash === user.password) {
+                console.log('Login', user);
+                var success = {
+                    "statusCode": 200,
+                    "message": "로그인 성공",
+                    "data": {
+                        "member_idx": user.member_idx
+                    }
+                };
+                res.status(200).send(success);
+            } else {
+                var fail = {
+                    "statusCode": 403,
+                    "message": "잘못된 비밀번호입니다."
+                };
+                res.status(403).send(fail);
+            }
+        });
     });
 });
 
-passport.use(new LocalStrategy(  // passport를 사용함에 있어서 로컬 전략을 사용하겠다는 객체생성
-    function(username, password, done){
-        var uname = username;
-        var pwd = password;
-        var sql = 'SELECT * FROM Member WHERE authId=?';
-        conn.query(sql, ['local:'+uname],function(err, results){
-            if(err){
-                return done('There is no user.');
-            }
-            var user = results[0];
-            return hasher({password: pwd, salt: user.salt}, function (err, pass, salt, hash) {
-                if (hash === user.password) {
-                    console.log('LocalStrategy', user);
-                    done(null, user);
-                } else {
-                    done(null, false);
-                }
-            });
-        });
-    }
-));
-
-app.post('/auth/login', passport.authenticate('local',
-    { //successRedirect: '/welcome',
-        failureRedirect: '/auth/failLogin', failureFlash: false
-    }),
-    function(req, res){
-        req.session.save(function(){
-            var success = {
-                "statusCode": 200,
-                "message": "로그인 성공"
-            };
-            res.send(success);
-        })
-    }
-);
-
-app.get('/auth/failLogin', function(req, res){
-    var fail = {
-        "statusCode": 400,
-        "message": "로그인 실패"
-    };
-    res.send(fail);
-});
-
-
 app.post('/auth/register', function(req, res){
+    console.log(req.body);
     hasher({password:req.body.password}, function(err, pass, salt, hash){
         var user = {
             authId:'local:'+req.body.username,
@@ -120,21 +91,30 @@ app.post('/auth/register', function(req, res){
                     "statusCode": 500,
                     "message": "회원가입 실패"
                 };
-                res.send(fail);
+                res.status(500).send(fail);
             } else {
-                req.login(user, function(err){
-                    req.session.save(function(){
+                req.session.save(function(){
+                    var sql = 'SELECT * FROM Member WHERE authId=?';
+                    conn.query(sql, [user.authId],function(err, results) {
                         var success = {
                             "statusCode": 200,
-                            "message": "회원가입 성공"
+                            "message": "회원가입 성공",
+                            "data": {
+                                "member_idx": results[0].member_idx
+                            }
                         };
-                        res.send(success);
+                        res.status(200).send(success);
                     });
-                })
+                });
             }
         });
     });
 });
+
+app.post('/request_test', function(req, res){
+    res.send(req.body);
+});
+
 
 app.listen(3003, function(){
     console.log("Connected 3003 port!!!");
