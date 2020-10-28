@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var MySQLStore = require('express-mysql-session')(session);
 var bkfd2Password = require("pbkdf2-password");
 var hasher = bkfd2Password();
+var {PythonShell} = require('python-shell');
 var mysql = require('mysql');
 var conn = mysql.createConnection({
     host:'220.90.200.176',
@@ -142,6 +143,22 @@ app.get('/product/:category_number', function(req, res) {
     });
 });
 
+app.post('/model', function(req, res){
+    console.log(req.body);
+    var photo = req.body.photo;
+    var options = {
+        mode: 'text',
+        // pythonPath: "C:/Python/Python36/python.exe",
+        pythonOptions: ['-u'],
+        // scriptPath: '',
+        args: [photo]
+    };
+    PythonShell.run('EasyFree_modeltest.py', options, function (err, results) {
+        if (err) throw err;
+        console.log('results: %j', results);
+        res.send(results[0]);
+    });
+});
 
 app.listen(3003, function(){
     console.log("Connected 3003 port!!!");
