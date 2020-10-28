@@ -102,6 +102,11 @@ app.post('/auth/register', function(req, res){
     });
 });
 
+app.port('/request_test', function(req, res){
+    res.send(req.body);
+});
+
+
 app.listen(3003, function(){
     console.log("Connected 3003 port!!!");
 });
