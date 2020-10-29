@@ -6,6 +6,9 @@ var MySQLStore = require('express-mysql-session')(session);
 var bkfd2Password = require("pbkdf2-password");
 var hasher = bkfd2Password();
 var {PythonShell} = require('python-shell');
+var moment = require('moment');
+require('moment-timezone');
+moment.tz.setDefault("Asia/Seoul");
 var mysql = require('mysql');
 var conn = mysql.createConnection({
     host:'220.90.200.176',
@@ -42,7 +45,7 @@ app.post('/auth/login', function(req, res){
     console.log(req.body);
     var uname = req.body.username;
     var pwd = req.body.password;
-    var sql = 'SELECT * FROM Member WHERE authId=?';
+    var sql = 'SELECT * FROM member WHERE authId=?';
     conn.query(sql, ['local:'+uname],function(err, results){
         if(err){
             console.log(err);
@@ -88,7 +91,7 @@ app.post('/auth/register', function(req, res){
             salt:salt,
             displayName:req.body.displayName
         };
-        var sql = 'INSERT INTO Member SET ?';
+        var sql = 'INSERT INTO member SET ?';
         conn.query(sql, user, function(err, results){
             if(err){
                 console.log(err);
@@ -99,7 +102,7 @@ app.post('/auth/register', function(req, res){
                 res.status(500).send(fail);
             } else {
                 req.session.save(function(){
-                    var sql = 'SELECT * FROM Member WHERE authId=?';
+                    var sql = 'SELECT * FROM member WHERE authId=?';
                     conn.query(sql, [user.authId],function(err, results) {
                         var success = {
                             "statusCode": 200,
@@ -119,7 +122,7 @@ app.post('/auth/register', function(req, res){
 app.get('/product/:category_number', function(req, res) {
     console.log(req.params.category_number);
     var category_number = req.params.category_number;
-    var sql = 'SELECT * FROM Product WHERE category_number=?';
+    var sql = 'SELECT * FROM product WHERE category_number=?';
     conn.query(sql, [category_number], function (err, results) {
         if (err) {
             console.log(err);
@@ -153,17 +156,47 @@ app.post('/model', function(req, res){
         // scriptPath: '',
         args: [photo]
     };
-    PythonShell.run('EasyFree_modeltest.py', options, function (err, results) {
+    PythonShell.run('DETR.py', options, function (err, results) {
         if (err) throw err;
         console.log('results: %j', results);
         var success = {
             "statusCode": 200,
             "message": "모델 실행 성공",
             "data": {
-                "result": results[0]
+                "result": results
             }
         };
         res.status(200).send(success);
+    });
+});
+
+app.post('/purchase',function(req, res){
+    console.log(req.body);
+    var data = req.body.data[0];
+    var time = moment().format('YYYY-MM-DD HH:MM:SS');
+    console.log(time)
+    var purchase_list = {
+        member_idx:req.body.member_idx,
+        product_number:data.product_number,
+        product_count:data.product_count,
+        purchase_date:time
+    };
+    var sql = 'INSERT INTO purchase SET ?';
+    conn.query(sql, purchase_list, function(err, results) {
+        if (err) {
+            console.log(err);
+            var fail = {
+                "statusCode": 500,
+                "message": "테이블 저장 실패"
+            };
+            res.status(500).send(fail);
+        } else {
+            var success = {
+                "statusCode": 200,
+                "message": "테이블 저장 성공",
+            };
+            res.status(200).send(success);
+        }
     });
 });
 
