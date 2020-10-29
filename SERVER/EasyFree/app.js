@@ -151,14 +151,17 @@ app.post('/model', function(req, res){
     var photo = req.body.photo;
     var options = {
         mode: 'text',
+        encoding: 'utf8',
         // pythonPath: "C:/Python/Python36/python.exe",
         pythonOptions: ['-u'],
-        // scriptPath: '',
+        // scriptPath: 'C:/Users/ehhah/dev/NLP_workspace/EasyFree/EasyFree-Backend/SERVER/EasyFree/Whaleling/Whaleling/predict_region.py',
         args: [photo]
     };
-    PythonShell.run('DETR.py', options, function (err, results) {
-        if (err) throw err;
-        console.log('results: %j', results);
+    PythonShell.run('model_temp.py', options, function (err, results) {
+        if (err){
+            console.log(err);
+            res.status(500).send('Internal Server Error');
+        }
         var success = {
             "statusCode": 200,
             "message": "모델 실행 성공",
