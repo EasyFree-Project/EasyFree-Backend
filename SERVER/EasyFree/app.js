@@ -151,13 +151,13 @@ app.post('/model', function(req, res){
     var photo = req.body.photo;
     var options = {
         mode: 'text',
-        encoding: 'utf8',
+        // encoding: 'utf8',
         // pythonPath: "C:/Python/Python36/python.exe",
         pythonOptions: ['-u'],
         // scriptPath: 'C:/Users/ehhah/dev/NLP_workspace/EasyFree/EasyFree-Backend/SERVER/EasyFree/Whaleling/Whaleling/predict_region.py',
         args: [photo]
     };
-    PythonShell.run('model_temp.py', options, function (err, results) {
+    PythonShell.run('svm.py', options, function (err, results) {
         if (err){
             console.log(err);
             res.status(500).send('Internal Server Error');
