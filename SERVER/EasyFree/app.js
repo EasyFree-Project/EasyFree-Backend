@@ -157,7 +157,7 @@ app.post('/model', function(req, res){
         // scriptPath: 'C:/Users/ehhah/dev/NLP_workspace/EasyFree/EasyFree-Backend/SERVER/EasyFree/Whaleling/Whaleling/predict_region.py',
         args: [photo]
     };
-    PythonShell.run('svm.py', options, function (err, results) {
+    PythonShell.run('detr.py', options, function (err, results) {
         if (err){
             console.log(err);
             res.status(500).send('Internal Server Error');
