@@ -120,8 +120,8 @@ def save_coco(coco_file, file_name, category_number, product_number, boundary):
 def mk_TrainData(FILE_PATH, FILE_NAME='et_a', FILE_COUNT=100):
     coco = pd.read_csv(FILE_PATH)
     item_list = list(coco['image_name'])
-    bg_fl = FileSearch.search('./BG_Image', '.jpg')
-    item_fl = list(map(lambda i : './Trans_Image/{}.png'.format(i), item_list))
+    bg_fl = FileSearch.search('./Emart_Image', '.jpg')
+    item_fl = list(map(lambda i : './Target_Trans/{}.png'.format(i), item_list))
     # 이미지가 최소 한번씩은 활용되게?
     img_count = 0
     MAX_IMG = 0
@@ -139,7 +139,7 @@ def mk_TrainData(FILE_PATH, FILE_NAME='et_a', FILE_COUNT=100):
             bg_w, bg_h = 1024, 1024
             img_count = 0
             
-            MAX_IMG = np.random.randint(0,15)
+            MAX_IMG = np.random.randint(0,10)
             file_counter += 1
             source = ['emart_1','emart_2','emart_3','emart_4','emart_5','emart_6'][np.random.randint(0,6)]
             if file_counter == FILE_COUNT+1:
@@ -152,15 +152,16 @@ def mk_TrainData(FILE_PATH, FILE_NAME='et_a', FILE_COUNT=100):
         category = coco.iloc[this_item]['category']
 
         item = Image.open(item_fl[this_item])
-        item = item.resize((112,112))
+        sizing = np.random.random(1) * 2 + 0.5 # 0.5 ~ 2.5
+        item = item.resize((224/sizing,224/sizing))
         min_x, max_x, min_y, max_y = reverse_xywh(coco.iloc[this_item][['x','y','w','h']])
-        min_x //= 2 
-        max_x //= 2 
-        min_y //= 2 
-        max_y //= 2 
+        min_x //= sizing 
+        max_x //= sizing 
+        min_y //= sizing 
+        max_y //= sizing 
         w, h = coco.iloc[this_item][['w','h']]
-        w //= 2 
-        h //= 2
+        w //= sizing 
+        h //= sizing
 
         in_x, in_y = np.random.randint(-min_y, bg_w - max_y), np.random.randint(-min_x, bg_h - max_x)
         bg.paste(item, (in_x, in_y), item)
