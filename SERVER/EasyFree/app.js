@@ -17,9 +17,33 @@ var conn = mysql.createConnection({
     database: 'EasyFree'
 });
 conn.connect();
+var multer  = require('multer');
+var path = require('path');
+// var storage = multer.memoryStorage();
+// var upload = multer({ storage });
+var upload = multer({
+    storage: multer.diskStorage({
+        // set a localstorage destination
+        destination: (req, file, cb) => {
+            cb(null, 'uploads/');
+        },
+        // convert a file name
+        filename: (req, file, cb) => {
+            cb(null, file.originalname);
+            // cb(null, new Date().valueOf() + path.extname(file.originalname));
+        }
+    }),
+});
+
 var app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+// app.use(bodyParser.json({limit: '100mb'}));
+// app.use(bodyParser.urlencoded({limit: '100mb', extended: true}));
+app.use(bodyParser.json({limit: 5000000}));// 5MB
+app.use(bodyParser.urlencoded({limit: 5000000, extended: true, parameterLimit:50000})); // limit: 5MB
+
 app.use(session({
     secret: 'happy',
     resave: false,
@@ -146,38 +170,41 @@ app.get('/product/:category_number', function(req, res) {
     });
 });
 
-app.post('/model', function(req, res){
-    console.log(req.body);
-    var photo = req.body.photo;
-    if(!photo){
-        var fail = {
-            "statusCode": 407,
-            "message": "존재하지 않는 사진입니다."
-        };
-        return res.status(407).send(fail);
-    }
-    var options = {
-        mode: 'text',
-        // encoding: 'utf8',
-        // pythonPath: "C:/Python/Python36/python.exe",
-        pythonOptions: ['-u'],
-        // scriptPath: 'C:/Users/ehhah/dev/NLP_workspace/EasyFree/EasyFree-Backend/SERVER/EasyFree/Whaleling/Whaleling/predict_region.py',
-        args: [photo]
-    };
-    PythonShell.run('DETR.py', options, function (err, results) {
-        if (err){
-            console.log(err);
-            res.status(500).send('Internal Server Error');
+app.post('/model', upload.single('productImg'), async (req, res, next) =>{
+    try {
+        console.log(req.file);
+        var photo = req.file;
+        if (!photo) {
+            var fail = {
+                "statusCode": 407,
+                "message": "존재하지 않는 사진입니다."
+            };
+            return res.status(407).send(fail);
         }
-        var success = {
-            "statusCode": 200,
-            "message": "모델 실행 성공",
-            "data": {
-                "result": results
-            }
+        var options = {
+            mode: 'text',
+            // pythonPath: "C:/Python/Python36/python.exe",
+            pythonOptions: ['-u'],
+            // scriptPath: 'C:\\Users\\ehhah\\dev\\NLP_workspace\\EasyFree\\EasyFree-Backend\\SERVER\\EasyFree\\DETR.py',
+            args: [photo]
         };
-        res.status(200).send(success);
-    });
+        PythonShell.run('model_temp.py', options, function (err, results) {
+            if (err) {
+                console.log(err);
+                res.status(500).send('Internal Server Error');
+            }
+            var success = {
+                "statusCode": 200,
+                "message": "모델 실행 성공",
+                "data": {
+                    "result": results
+                }
+            };
+            res.status(200).send(success);
+        });
+    } catch (e) {
+        next(e);
+    }
 });
 
 app.post('/purchase',function(req, res){
