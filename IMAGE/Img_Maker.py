@@ -167,7 +167,7 @@ def mk_TrainData(FILE_PATH, FILE_NAME='et_a', FILE_COUNT=100):
         bg.paste(item, (in_x, in_y), item)
 
         # coco file 작성 (이미지 좌측 위를 0,0 이라 했을 때, x - 가로, y - 세로 좌표)
-        coco_data = '\n%s,%s,%s,%s,%s,%s,%s'%('%s_%s'%(FILE_NAME, file_counter), category, in_x + min_y, in_y + min_x, h, w,source) # + h // 2 + w // 2
+        coco_data = '\n%s,%s,%s,%s,%s,%s,%s'%('%s_%s'%(FILE_NAME, file_counter), category, int(in_x + min_y), int(in_y + min_x), int(h), int(w),source) # + h // 2 + w // 2
         with open('./coco_train.csv', 'a', encoding='utf-8') as f:
             f.write(coco_data)
         
