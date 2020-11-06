@@ -45,7 +45,7 @@ app.post('/auth/login', function(req, res){
     console.log(req.body);
     var uname = req.body.username;
     var pwd = req.body.password;
-    var sql = 'SELECT * FROM member WHERE authId=?';
+    var sql = 'SELECT * FROM member WHERE auth_id=?';
     conn.query(sql, ['local:'+uname],function(err, results){
         if(err){
             console.log(err);
@@ -85,11 +85,11 @@ app.post('/auth/register', function(req, res){
     console.log(req.body);
     hasher({password:req.body.password}, function(err, pass, salt, hash){
         var user = {
-            authId:'local:'+req.body.username,
-            username:req.body.username,
+            auth_id:'local:'+req.body.username,
+            user_name:req.body.username,
             password:hash,
             salt:salt,
-            displayName:req.body.displayName
+            display_name:req.body.displayName
         };
         var sql = 'INSERT INTO member SET ?';
         conn.query(sql, user, function(err, results){
@@ -102,8 +102,8 @@ app.post('/auth/register', function(req, res){
                 res.status(500).send(fail);
             } else {
                 req.session.save(function(){
-                    var sql = 'SELECT * FROM member WHERE authId=?';
-                    conn.query(sql, [user.authId],function(err, results) {
+                    var sql = 'SELECT * FROM member WHERE auth_id=?';
+                    conn.query(sql, [user.auth_id],function(err, results) {
                         var success = {
                             "statusCode": 200,
                             "message": "회원가입 성공",
@@ -149,6 +149,13 @@ app.get('/product/:category_number', function(req, res) {
 app.post('/model', function(req, res){
     console.log(req.body);
     var photo = req.body.photo;
+    if(!photo){
+        var fail = {
+            "statusCode": 407,
+            "message": "존재하지 않는 사진입니다."
+        };
+        return res.status(407).send(fail);
+    }
     var options = {
         mode: 'text',
         // encoding: 'utf8',
@@ -157,7 +164,7 @@ app.post('/model', function(req, res){
         // scriptPath: 'C:/Users/ehhah/dev/NLP_workspace/EasyFree/EasyFree-Backend/SERVER/EasyFree/Whaleling/Whaleling/predict_region.py',
         args: [photo]
     };
-    PythonShell.run('detr.py', options, function (err, results) {
+    PythonShell.run('DETR.py', options, function (err, results) {
         if (err){
             console.log(err);
             res.status(500).send('Internal Server Error');
@@ -176,6 +183,13 @@ app.post('/model', function(req, res){
 app.post('/purchase',function(req, res){
     console.log(req.body);
     var data = req.body.data[0];
+    if(!data.product_number){
+        var fail = {
+            "statusCode": 407,
+            "message": "구매목록이 존재하지 않습니다."
+        };
+        return res.status(407).send(fail);
+    }
     var time = moment().format('YYYY-MM-DD HH:MM:SS');
     console.log(time)
     var purchase_list = {
