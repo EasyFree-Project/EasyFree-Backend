@@ -12,7 +12,9 @@ import albumentations as A
 
 model_name = 'detr_resnet50'
 
-def show_pred(otuputs):
+CATEGORY_NUMBER = ['N/A', '6000095799', '6000096206', '6000095904', '6000095829', '6000096294', '6000096175', '6000096220', '6000095921']
+
+def show_pred(outputs):
     oboxes = outputs['pred_boxes'][0].detach().cpu().numpy()
     oboxes = [np.array(box).astype(np.int32) for box in A.augmentations.bbox_utils.denormalize_bboxes(oboxes, 512, 512)]
     
@@ -20,10 +22,10 @@ def show_pred(otuputs):
     color = (220,0,0)
     for box,p in zip(oboxes,prob):
         cl = p.argmax()
-        if p[cl] > 0.3:
+        if p[cl] > 0.9:
             try:
                 x1, x2, y1, y2 = box[0]-box[2], box[0]+box[2], box[1]-box[3], box[1]+box[3]
-                print(x1, x2, y1, y2, cl)
+                print(x1, x2, y1, y2, CATEGORY_NUMBER[cl])
             except:pass
 
 def DETRModel(num_classes,model_name=model_name):
@@ -65,14 +67,14 @@ class DETRModel(nn.Module):
             'final': self.out.parameters()
             }
 
-model = DETRModel(num_classes=17) # 나중에 모델 수정 시 변경
-ORIGINAL_PATH = 'C:/Users/ehhah/dev/NLP_workspace/EasyFree/EasyFree-Backend/SERVER/EasyFree/detr_best_0.pth'
+model = DETRModel(num_classes=9) # 나중에 모델 수정 시 변경
+ORIGINAL_PATH = '/home/lab10/JJC/EasyFree-Backend/MODEL/DETR/detr_final.pth'
 model.load_state_dict(torch.load(ORIGINAL_PATH))
 model.to(torch.device('cuda'))
 None
 
 # 들어온 데이터 (임시)
-img = Image.open('C:/Users/ehhah/dev/NLP_workspace/EasyFree/EasyFree-Backend/SERVER/EasyFree/emart_display_124.jpg')
+img = Image.open('/home/ubuntu/easyfree/EasyFree-Backend/SERVER/EasyFree/uploads/image.png')
 img = img.resize((512,512))
 pil_to_tensor = transforms.ToTensor()(img).unsqueeze_(0)
 dev_images = [img.to(torch.device('cuda')) for img in pil_to_tensor]

@@ -188,7 +188,7 @@ app.post('/model', upload.single('productImg'), async (req, res, next) =>{
             // scriptPath: 'C:\\Users\\ehhah\\dev\\NLP_workspace\\EasyFree\\EasyFree-Backend\\SERVER\\EasyFree\\DETR.py',
             args: [photo]
         };
-        PythonShell.run('model_temp.py', options, function (err, results) {
+        PythonShell.run('DETR.py', options, function (err, results) {
             if (err) {
                 console.log(err);
                 res.status(500).send('Internal Server Error');
