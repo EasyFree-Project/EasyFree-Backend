@@ -193,6 +193,13 @@ app.post('/model', upload.single('productImg'), async (req, res, next) =>{
                 console.log(err);
                 res.status(500).send('Internal Server Error');
             }
+            if (!results) {
+                var fail = {
+                    "statusCode": 200,
+                    "message": "모델 실행 결과가 없습니다."
+                };
+                return res.status(200).send(fail);
+            }
             var success = {
                 "statusCode": 200,
                 "message": "모델 실행 성공",

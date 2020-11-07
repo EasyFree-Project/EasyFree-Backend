@@ -68,7 +68,7 @@ class DETRModel(nn.Module):
             }
 
 model = DETRModel(num_classes=9) # 나중에 모델 수정 시 변경
-ORIGINAL_PATH = '/home/lab10/JJC/EasyFree-Backend/MODEL/DETR/detr_final.pth'
+ORIGINAL_PATH = '/home/ubuntu/easyfree/EasyFree-Backend/SERVER/EasyFree/detr_final.pth'
 model.load_state_dict(torch.load(ORIGINAL_PATH))
 model.to(torch.device('cuda'))
 None
