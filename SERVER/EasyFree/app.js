@@ -146,7 +146,7 @@ app.post('/auth/register', function(req, res){
 app.get('/product/:category_number', function(req, res) {
     console.log(req.params.category_number);
     var category_number = req.params.category_number;
-    var sql = 'SELECT * FROM product WHERE category_number=?';
+    var sql = 'SELECT * FROM product WHERE category_number=? and url!=\'\'';
     conn.query(sql, [category_number], function (err, results) {
         if (err) {
             console.log(err);
