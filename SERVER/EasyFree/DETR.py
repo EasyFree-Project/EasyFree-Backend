@@ -22,7 +22,7 @@ def show_pred(outputs):
     color = (220,0,0)
     for box,p in zip(oboxes,prob):
         cl = p.argmax()
-        if p[cl] > 0.9:
+        if p[cl] > 0.5:
             try:
                 x1, x2, y1, y2 = box[0]-box[2], box[0]+box[2], box[1]-box[3], box[1]+box[3]
                 print(x1, x2, y1, y2, CATEGORY_NUMBER[cl])
@@ -68,13 +68,13 @@ class DETRModel(nn.Module):
             }
 
 model = DETRModel(num_classes=9) # 나중에 모델 수정 시 변경
-ORIGINAL_PATH = '/home/ubuntu/easyfree/EasyFree-Backend/SERVER/EasyFree/detr_final.pth'
+ORIGINAL_PATH = 'C:/Users/ehhah/dev/NLP_workspace/EasyFree/EasyFree-Backend/SERVER/EasyFree/detr_final.pth'
 model.load_state_dict(torch.load(ORIGINAL_PATH))
 model.to(torch.device('cuda'))
 None
 
 # 들어온 데이터 (임시)
-img = Image.open('/home/ubuntu/easyfree/EasyFree-Backend/SERVER/EasyFree/uploads/image.png')
+img = Image.open('C:/Users/ehhah/dev/NLP_workspace/EasyFree/EasyFree-Backend/SERVER/EasyFree/uploads/image.png')
 img = img.resize((512,512))
 pil_to_tensor = transforms.ToTensor()(img).unsqueeze_(0)
 dev_images = [img.to(torch.device('cuda')) for img in pil_to_tensor]
