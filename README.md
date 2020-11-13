@@ -74,11 +74,55 @@ scrapy crawl emart
 
 
 
-### 3. Server (API)
+### 3. Database
 
 #### 3.1 Entity Relation Diagram
 
+![EasyFree_erd](https://user-images.githubusercontent.com/30308916/99019542-dd6f0380-259f-11eb-9415-39e7b23a9517.PNG)
 
+
+
+### 4. Server (API)
+
+#### 4.0 설치 모듈과 주소
+
+##### 설치 모듈
+```
+express, express-session, mysql, express-mysql-session, http, body-parser, pbkdf2-password, python-shell,
+moment, moment-timezone, multer, path
+```
+
+##### 주소
+```
+http://54.180.153.44:3003
+http://220.87.55.135:3003
+```
+
+#### 4.1 input
+
+##### POST
+```
+Content-Type: application/json 형식
+
+로그인 : username, password
+회원가입 : username, password, displayName
+구매(장바구니) : member_idx, data(product_number, product_count)
+
+multipart/form-data 형식(form-data 형식)
+모델실행 : productImg
+```
+
+##### GET
+```
+상품검색 : ~/product/:category_number
+```
+
+#### 4.2 output
+
+```
+Content-Type: application/json 형식
+return message : statusCode, message
+```
 
 
 

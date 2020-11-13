@@ -19,32 +19,20 @@ var conn = mysql.createConnection({
 conn.connect();
 var multer  = require('multer');
 var path = require('path');
-// var storage = multer.memoryStorage();
-// var upload = multer({ storage });
 var upload = multer({
     storage: multer.diskStorage({
-        // set a localstorage destination
-        destination: (req, file, cb) => {
+        destination: (req, file, cb) => {  // 저장할 곳 설정
             cb(null, 'uploads/');
         },
-        // convert a file name
-        filename: (req, file, cb) => {
+        filename: (req, file, cb) => {  // 파일 이름 설정
             cb(null, file.originalname);
-            // cb(null, new Date().valueOf() + path.extname(file.originalname));
         }
     }),
 });
-
 var app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
-// app.use(bodyParser.json({limit: '100mb'}));
-// app.use(bodyParser.urlencoded({limit: '100mb', extended: true}));
-app.use(bodyParser.json({limit: 5000000}));// 5MB
-app.use(bodyParser.urlencoded({limit: 5000000, extended: true, parameterLimit:50000})); // limit: 5MB
-
-app.use(session({
+app.use(session({  // 세션 정보 설정
     secret: 'happy',
     resave: false,
     saveUninitialized: true,
@@ -61,19 +49,14 @@ app.get('/', function(err, res){
     res.send('Welcome EasyFree Server!');
 });
 
-app.post('/request_test', function(req, res){
-    res.send(req.body);
-});
-
 app.post('/auth/login', function(req, res){
-    console.log(req.body);
     var uname = req.body.username;
     var pwd = req.body.password;
     var sql = 'SELECT * FROM member WHERE auth_id=?';
     conn.query(sql, ['local:'+uname],function(err, results){
         if(err){
             console.log(err);
-            res.status(500).send('Internal Server Error');
+            res.status(500).send('서버에러. 서버관리자에게 문의해주세요.');
         }
         var user = results[0];
         if(!user){
@@ -81,6 +64,7 @@ app.post('/auth/login', function(req, res){
                 "statusCode": 407,
                 "message": "존재하지 않는 유저입니다."
             };
+            console.log(fail);
             return res.status(407).send(fail);
         }
         return hasher({password: pwd, salt: user.salt}, function (err, pass, salt, hash) {
@@ -93,12 +77,14 @@ app.post('/auth/login', function(req, res){
                         "member_idx": user.member_idx
                     }
                 };
+                console.log(success);
                 res.status(200).send(success);
             } else {
                 var fail = {
                     "statusCode": 403,
                     "message": "잘못된 비밀번호입니다."
                 };
+                console.log(fail);
                 res.status(403).send(fail);
             }
         });
@@ -106,7 +92,6 @@ app.post('/auth/login', function(req, res){
 });
 
 app.post('/auth/register', function(req, res){
-    console.log(req.body);
     hasher({password:req.body.password}, function(err, pass, salt, hash){
         var user = {
             auth_id:'local:'+req.body.username,
@@ -123,6 +108,7 @@ app.post('/auth/register', function(req, res){
                     "statusCode": 500,
                     "message": "회원가입 실패"
                 };
+                console.log(fail);
                 res.status(500).send(fail);
             } else {
                 req.session.save(function(){
@@ -135,6 +121,7 @@ app.post('/auth/register', function(req, res){
                                 "member_idx": results[0].member_idx
                             }
                         };
+                        console.log(success);
                         res.status(200).send(success);
                     });
                 });
@@ -150,13 +137,14 @@ app.get('/product/:category_number', function(req, res) {
     conn.query(sql, [category_number], function (err, results) {
         if (err) {
             console.log(err);
-            res.status(500).send('Internal Server Error');
+            res.status(500).send('서버에러. 서버관리자에게 문의해주세요.');
         }
         if (!results[0]) {
             var fail = {
                 "statusCode": 407,
                 "message": "존재하지 않는 카테고리입니다."
             };
+            console.log(fail);
             return res.status(407).send(fail);
         }
         var success = {
@@ -166,6 +154,7 @@ app.get('/product/:category_number', function(req, res) {
                 "item": results
             }
         };
+        console.log(success);
         res.status(200).send(success);
     });
 });
@@ -179,25 +168,25 @@ app.post('/model', upload.single('productImg'), async (req, res, next) =>{
                 "statusCode": 407,
                 "message": "존재하지 않는 사진입니다."
             };
+            console.log(fail);
             return res.status(407).send(fail);
         }
         var options = {
             mode: 'text',
-            // pythonPath: "C:/Python/Python36/python.exe",
             pythonOptions: ['-u'],
-            // scriptPath: 'C:\\Users\\ehhah\\dev\\NLP_workspace\\EasyFree\\EasyFree-Backend\\SERVER\\EasyFree\\DETR.py',
             args: [photo]
         };
         PythonShell.run('DETR.py', options, function (err, results) {
             if (err) {
                 console.log(err);
-                res.status(500).send('Internal Server Error');
+                res.status(500).send('서버에러. 서버관리자에게 문의해주세요.');
             }
             if (!results) {
                 var fail = {
                     "statusCode": 200,
                     "message": "모델 실행 결과가 없습니다."
                 };
+                console.log(fail);
                 return res.status(200).send(fail);
             }
             var success = {
@@ -207,21 +196,22 @@ app.post('/model', upload.single('productImg'), async (req, res, next) =>{
                     "result": results
                 }
             };
+            console.log(success);
             res.status(200).send(success);
         });
-    } catch (e) {
-        next(e);
+    } catch (err) {
+        next(err);
     }
 });
 
 app.post('/purchase',function(req, res){
-    console.log(req.body);
     var data = req.body.data[0];
     if(!data.product_number){
         var fail = {
             "statusCode": 407,
             "message": "구매목록이 존재하지 않습니다."
         };
+        console.log(fail);
         return res.status(407).send(fail);
     }
     var time = moment().format('YYYY-MM-DD HH:MM:SS');
@@ -240,12 +230,14 @@ app.post('/purchase',function(req, res){
                 "statusCode": 500,
                 "message": "테이블 저장 실패"
             };
+            console.log(fail);
             res.status(500).send(fail);
         } else {
             var success = {
                 "statusCode": 200,
                 "message": "테이블 저장 성공",
             };
+            console.log(success);
             res.status(200).send(success);
         }
     });
