@@ -1,106 +1,90 @@
 # [EasyFree] Object Detection을 이용한 핸드프리 쇼핑 앱
 
-
-
-> 관련참고
-
-> 1. Object Detection을 이용한 핸드프리 쇼핑 앱 노션
->    https://www.notion.so/EasyFree-046515e567a74555b929ca4168579e16
-
-> 2. GitHub
->    https://github.com/GarnetKangSB/EasyFree
-
-> 3. 기획서
->
-
-> 4. Application
->
-
-> 5. 최종 보고서
->
-
-> 6. 발표 영상 (발표자:최재진)
->    유투브 박제 각
-
-
-
-### 역할
+**2020 인공지능을 활용한 자연어처리과정 Final Project**
 
 ------
 
-모델 - 강승범, 김지영, 최재진
+#### 프로젝트 개요
 
-iOS - 노규명
+기업이 온라인을 통해 축적한 기술이나 데이터를 상품 조달 등에 적용해 오프라인으로 사업을 확대하는 신규 Biz 플랫폼, Online for Offline(O4O)
 
-백앤드 - 하은혜
+> SLOGAN : Easy &Fun shopping, Hands Free (Easy Free)
 
+오프라인에서는 쇼핑하는 재미를, 온라인에서는 고객의 불편을 해소하는 EasyFree 제안
 
+![logo](./src/img/logo.png)
 
-### 프로젝트 내려받기
+#### 프로젝트 목표
 
-```
-git clone 'https://github.com/GarnetKangSB/EasyFree'
-```
+‘Object Detection’을 활용하여 모바일에서 제품 리스트, 원산지, 성분 정보를 확인하고 주문을 처리할 수 있는 쇼핑 앱 개발
 
+------
 
-
-## 0. 패키지 다운로드
-
-
-
-## 1. SSG_E-mart Crawling
-
-### 1.1 Scrapy 디렉터리로 이동
+### Project Download
 
 ```
-cd sns_project/Insta
-```
-
-### 1.2 Scrapy Spider 크롤러 동작 명령어
-
-```
-scrapy crawl ssg -a
+git clone 'https://github.com/EasyFree-Project/EasyFree-Backend.git'
 ```
 
 
 
-## 2. Object Detection Model Training
-
-### 2.1 DETR
+### 0. Download Package
 
 ```
-print("재진 갈군다 프로젝트 굴린다")
-```
-
-### 2.2 YOLOv5
-
-```
-print("승범이는 술을 싫어한다")
-```
-
-### 2.3 MnasNet
-
-```
-print("지영이가 구른다")
+pip install -r requirements.txt
 ```
 
 
-## 3. iOS 어플리케이션 제작
 
-### 3.1 Swift (2014)
+### 1. SSG E-mart Crawling
 
-오브젝티브 씨 버려
+#### 1.1 Scrapy 디렉토리로 이동
 
-https://developer.apple.com/kr/swift/
+```
+cd EasyFree-Backend/COLLECT_DATA
+```
 
-### 3.2 어플리케이션 
+#### 1.2 Scrapy Spider 크롤러 동작 명령어
 
-Use Case Diagram, Flow Chart
+```
+scrapy crawl emart
+```
 
 
 
-## 4. Date Base 구축
+### 2. Object Detection Modeling
 
-### 4.1 Entity Relation Diagram
+#### 2.0 이미지 구축 방법론
 
-### 4.2 은혜 갈린다 
+```
+
+```
+
+#### 2.1 MnasNet
+
+```
+
+```
+
+#### 2.2 DETR
+
+```
+
+```
+
+
+
+### 3. Server (API)
+
+#### 3.1 Entity Relation Diagram
+
+
+
+
+
+> Reference
+>
+> 1. [Notion](https://www.notion.so/EasyFree-046515e567a74555b929ca4168579e16)
+> 2. GitHub ([Android](https://github.com/EasyFree-Project/EasyFree-Android), [iOS](https://github.com/EasyFree-Project/EasyFree-iOS), [Backend](https://github.com/EasyFree-Project/EasyFree-Backend))
+> 3. [Application (Playstore)](https://play.google.com/store/apps/details?id=com.sosin.easyfree)
+> 4. [최종 보고서](https://drive.google.com/file/d/1pS-XlnIR-GEnt_eicvVs0ndYX__znosm/view?usp=sharing)
