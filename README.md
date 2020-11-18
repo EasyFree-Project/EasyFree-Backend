@@ -18,6 +18,15 @@
 
 ‘Object Detection’을 활용하여 모바일에서 제품 리스트, 원산지, 성분 정보를 확인하고 주문을 처리할 수 있는 쇼핑 앱 개발
 
+#### 활용방안 & 기대효과
+
+![effect](./src/img/effect.png)
+
+1. 고객이 장바구니를 들고 직접 물건을 가지고 가야하는 불편 해소
+2. 고객에게 제품 정보나 연관 물품을 스마트폰으로 제공
+3. 고객 구매 데이터를 수집, 분석, 마케팅에 활용
+4. QR 코드를 통한 제품 인식 가능
+
 ------
 
 ### Project Download
@@ -27,13 +36,11 @@ git clone 'https://github.com/EasyFree-Project/EasyFree-Backend.git'
 ```
 
 
-
 ### 0. Download Package
 
 ```
 pip install -r requirements.txt
 ```
-
 
 
 ### 1. SSG E-mart Crawling
@@ -51,28 +58,59 @@ scrapy crawl emart
 ```
 
 
-
 ### 2. Object Detection Modeling
 
 #### 2.0 이미지 구축 방법론
 
-```
+이미지 구축 방법론으론 2가지를 고려함.
+1. LabelImg를 활용한 이미지 라벨링 수작업
+2. Google Deeplab V3+ Semantic Labeling Idea를 활용한 투명화
 
-```
+**2번째 구축 방법론을 활용**
+
+- 구글 Semantic labeling Idea
+![google_semantic](./src/img/google_semantic.png)
+
+- 이미지 투명화 → 임시 이미지에 합성, Annotation 데이터 입력
+![labeling_idea](./src/img/labeling_idea.png)
+
 
 #### 2.1 MnasNet
 
-```
+![mnasnet](./src/img/mnasnet.png)
 
-```
+- 상품단위 예측을 위해 MnasNet 사용
+- Y = accuracy & latency(지연시간, 연산시간) 
+- 가벼운 데 반해 많은 Layer로 성능 향상
+
+※ 하지만 사용하지 않음
+
 
 #### 2.2 DETR
 
-```
+![detr](./src/img/detr.png)
+- Facebook AI Developer + PyTorch ▶ Object Detection
+- Backbone – CNN(RESNET50, RESNET101), 이미지 Feature 추출
+- Transformer Encoder, Decoder - Object Box 예측
 
-```
+- RESNET50 기준 모델 용량 158MB
 
+![train_1](./src/img/train_image_1.png)
 
+Object 크기를 고려하지 않고 검증하면,
+
+![valid_1](./src/img/valid_image_1.png)
+
+다음과 같이 학습된 환경 하 검증은 잘 됨.
+하지만 실제 이미지로 검증 시, 크기에 따라 정확도가 현저히 떨어지는 모습을 보임
+
+![train_2](./src/img/train_image_2.png)
+
+따라서 Object 크기를 랜덤하게하여 Object Box 크기도 학습
+
+![emart_image](./src/img/emart_image.png)
+
+그 결과, 다음과 같이 학습되지 않은 환경 하 검증도 높은 수준으로 검증을 하게 됨
 
 ### 3. Database
 
